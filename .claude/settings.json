@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(D:/workspace/ccna-wiki/**)",
+      "Write(D:/workspace/ccna-wiki/**)",
+      "Edit(D:/workspace/ccna-wiki/**)",
+      "Read(D:/workspace/test-bank/**)"
+    ]
+  }
+}
