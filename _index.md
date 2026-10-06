@@ -80,6 +80,10 @@ Mục lục tra cứu toàn bộ nội dung trong kho tri thức.
   *keywords: NAT, kết nối đầu-cuối (end-to-end), phần dữ liệu (payload), VoIP, IPsec, CGNAT*
 - [[subnet-cung-mot-khoi-van-phai-qua-router]] — chia một khối thành nhiều mạng con (subnet) không tạo kết nối trực tiếp; ranh giới do mask quyết định;
   *keywords: subnet, cùng khối, bộ định tuyến (router), mask, AND bit, miền quảng bá (broadcast domain)*
+- [[chia-mang-khong-tao-dia-chi-moi-chi-phan-vung-lai-khoi]] — chia mạng không tạo thêm địa chỉ; mỗi địa chỉ thuộc đúng một subnet hoặc trống, hai subnet cùng chứa một địa chỉ là chồng lấn;
+  *keywords: chồng lấn (overlap), phân vùng, subnet, 256 địa chỉ, chia mạng con (subnetting)*
+- [[phuong-an-vlsm-hop-le-khac-toi-uu-uu-tien-khoi-trong-lien-ke-lon-nhat]] — "hợp lệ" khác "tối ưu": nhiều phương án đặt Subnet ID đều đúng luật, nên chọn phương án giữ khối trống liền kề lớn nhất;
+  *keywords: VLSM, phân mảnh (fragmentation), Subnet ID, phương án đặt, gom tuyến (route aggregation)*
 
 ## Methods
 
@@ -87,8 +91,12 @@ Mục lục tra cứu toàn bộ nội dung trong kho tri thức.
 
 - [[chia-subnet-theo-so-host]] — quy trình cắt một khối thành mạng con (subnet) vừa khít số host, cấp khối lớn trước, căn lề 2ᵏ;
   *keywords: chia mạng con (subnetting), VLSM, mạng con (subnet), căn lề, phương pháp*
-- [[tra-cuu-prefix-va-buoc-nhay]] — tra nhanh số host của prefix và tính ranh giới subnet bằng bước nhảy (256 − octet mask);
+- [[tra-cuu-prefix-va-buoc-nhay]] — tra nhanh số host của prefix và tính ranh giới subnet bằng bước nhảy (256 − octet mask); tính ngược từ host ra prefix bằng công thức;
   *keywords: prefix, bước nhảy, magic number, /26, /30, AND bit, tra cứu*
+- [[sau-cach-giai-bai-toan-vlsm]] — sáu cách đặt Subnet ID cho cùng một lời giải VLSM: con trỏ, chia đôi liên tiếp, cây nhị phân, nhị phân thuần, công thức cộng dồn, liệt kê và gạch bỏ;
+  *keywords: VLSM, Subnet ID, pie method, magic number, cây nhị phân, pattern value*
+- [[kiem-chung-loi-giai-vlsm-bang-ba-phep-thu-cong-va-ipaddress]] — kiểm chứng lời giải VLSM bằng ba phép thủ công, tự động hoá bằng thư viện ipaddress của Python, và năm lỗi hay gặp;
+  *keywords: kiểm chứng, ipaddress, Python, chồng lấn (overlap), broadcast, lỗi thường gặp*
 
 ## Examples
 
@@ -102,3 +110,5 @@ Mục lục tra cứu toàn bộ nội dung trong kho tri thức.
   *keywords: /26, AND bit, bộ định tuyến (router), miền quảng bá (broadcast domain), cùng khối*
 - [[and-bit-voi-mask-khong-tron-octet]] — AND bit 10.1.1.2/255.255.224.0 → 10.1.0.0/19; bước nhảy 32;
   *keywords: AND bit, mask không tròn octet, /19, bước nhảy, 8.190 host*
+- [[vlsm-br1-dat-tai-96-27-chong-lan-voi-hq-lan2]] — đặt BRANCH LAN1 tại .96/27 trong khi HQ LAN2 đã chiếm .64/26 → chồng lấn, .100 thuộc hai subnet;
+  *keywords: VLSM, chồng lấn (overlap), 192.168.40.0/24, /27, /26, broadcast*

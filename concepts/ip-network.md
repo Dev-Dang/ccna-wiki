@@ -4,7 +4,7 @@ domain: networking
 source_type: file
 date: 2026-10-05
 status: Draft
-_organized: false
+_organized: true
 _icon: box
 aliases: ["IP network", "mạng IP", "mạng"]
 Related to:
@@ -24,7 +24,6 @@ sources:
   - id: "why-do-we-need-ip-subnetting-vi"
     ref: "[2]"
 ---
-
 # Mạng IP (IP network)
 
 **Mạng IP (IP network)** là một **nhóm địa chỉ IP cùng chung một miền quảng bá (broadcast domain)** và **không cần bộ định tuyến (router) để giao tiếp với nhau**.
@@ -35,7 +34,7 @@ Nói cách khác: các thiết bị trong cùng một mạng IP "nghe thấy" nh
 
 Ba quy tắc này mô tả ranh giới của một mạng IP và là kiến thức nền mà người làm mạng phải nắm chắc:
 
-1. **Một mạng con (subnet) = một miền quảng bá (broadcast domain) = một VLAN.** (VLAN – Virtual Local Area Network – dịch địa chỉ mạng LAN ảo, tức một mạng LAN logic được tách bằng cấu hình thay vì bằng cáp.)
+1. **Một mạng con (subnet) = một miền quảng bá (broadcast domain) = một VLAN.** (VLAN – Virtual Local Area Network – địa chỉ mạng LAN ảo, tức một mạng LAN logic được tách bằng cấu hình thay vì bằng cáp.)
 2. **Các địa chỉ IP trong cùng một mạng con (subnet) giao tiếp trực tiếp** qua chuyển mạch Ethernet (Ethernet switching), không bị bộ định tuyến (router) ngăn cách.
 3. **Các địa chỉ IP thuộc các mạng con (subnet) khác nhau bị ngăn cách bởi một hoặc nhiều bộ định tuyến (router)**, và giao tiếp với nhau thông qua định tuyến IP (IP routing).
 
@@ -50,7 +49,7 @@ Hai host thuộc hai mạng con (subnet) khác nhau — dù cùng nằm trong `1
 
 ### Ai quyết định "cùng mạng hay khác mạng"?
 
-**[[host]] tự quyết định** bằng **phép AND bit**: áp mặt nạ mạng (network mask) của chính mình lên cả địa chỉ nguồn và địa chỉ đích, rồi so hai kết quả [1].
+[[host]] **tự quyết định** bằng **phép AND bit**: áp mặt nạ mạng (network mask) của chính mình lên cả địa chỉ nguồn và địa chỉ đích, rồi so hai kết quả [1].
 
 - **Bằng nhau →** cùng mạng con (subnet): dùng ARP lấy địa chỉ MAC (MAC address) đích rồi gửi trực tiếp qua [[switch]].
 - **Khác nhau →** khác mạng con (subnet): gửi cho [[default-gateway]] để [[router]] chuyển tiếp.

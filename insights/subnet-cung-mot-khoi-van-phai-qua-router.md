@@ -4,7 +4,7 @@ domain: networking
 source_type: file
 date: 2026-10-05
 status: Draft
-_organized: false
+_organized: true
 _icon: lightbulb
 claim: "Chia một khối địa chỉ thành nhiều subnet không tạo ra kết nối trực tiếp: hai subnet cùng khối vẫn phải đi qua router, vì ranh giới do mask quyết định chứ không do khối gốc."
 confidence: high
@@ -21,7 +21,6 @@ sources:
   - id: "ip-addressing-learn"
     ref: "[1]"
 ---
-
 # Chia một khối địa chỉ thành nhiều subnet không tạo ra kết nối trực tiếp giữa chúng
 
 ## Bối cảnh
@@ -39,12 +38,12 @@ Ranh giới giữa các mạng con (subnet) do **mặt nạ mạng (network mask
 - **Khối được cấp (allocation)** là dải địa chỉ tổ chức nhận được — ví dụ `192.168.1.0/24`.
 - **Mạng con (subnet)** là dải con với ranh giới do **mặt nạ mạng (network mask)** quyết định — ví dụ `192.168.1.0/26` và `192.168.1.64/26`.
 
-Khi **[[host]]** muốn gửi dữ liệu, nó **tự phán quyết** đích là cùng mạng hay khác mạng bằng **phép AND bit**: áp mặt nạ mạng (network mask) của chính mình lên địa chỉ nguồn và địa chỉ đích, rồi so hai kết quả [1].
+Khi [[host]] muốn gửi dữ liệu, nó **tự phán quyết** đích là cùng mạng hay khác mạng bằng **phép AND bit**: áp mặt nạ mạng (network mask) của chính mình lên địa chỉ nguồn và địa chỉ đích, rồi so hai kết quả [1].
 
 - **Bằng nhau →** cùng mạng con (subnet): gửi trực tiếp qua [[switch]], không cần bộ định tuyến (router).
-- **Khác nhau →** khác mạng con (subnet): gửi cho **[[default-gateway]]** để **[[router]]** chuyển tiếp.
+- **Khác nhau →** khác mạng con (subnet): gửi cho [[default-gateway]] để [[router]] chuyển tiếp.
 
-Mỗi mạng con (subnet) cũng là một **miền quảng bá (broadcast domain)** riêng, và [[router]] là ranh giới chặn quảng bá (broadcast) [1]. Chia một khối thành bốn mạng con (subnet) nghĩa là tạo ra **bốn miền quảng bá (broadcast domain)** — ARP trong mạng con này không vói tới mạng con kia.
+Mỗi mạng con (subnet) cũng là một **miền quảng bá (broadcast domain)** riêng, và [[router]] là ranh giới chặn quảng bá (broadcast) [1]. Chia một khối thành bốn mạng con (subnet) nghĩa là tạo ra **bốn miền quảng bá (broadcast domain)** — ARP trong mạng con này không với tới mạng con kia.
 
 ## Phạm vi / ngoại lệ
 

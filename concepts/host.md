@@ -4,7 +4,7 @@ domain: networking
 source_type: file
 date: 2026-10-05
 status: Draft
-_organized: false
+_organized: true
 _icon: box
 aliases: ["host", "thiết bị đầu cuối", "máy trạm"]
 Related to:

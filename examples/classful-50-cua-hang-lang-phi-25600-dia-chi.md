@@ -4,7 +4,7 @@ domain: networking
 source_type: file
 date: 2026-10-05
 status: Draft
-_organized: false
+_organized: true
 _icon: clipboard-list
 Related to:
   - "[[mo-hinh-classful-lang-phi-dia-chi-vi-ba-co-khoi-qua-tho]]"

@@ -41,17 +41,28 @@ Mỗi mạng con (subnet) như vậy có prefix riêng, và mặt nạ mạng (n
 
 ## Ràng buộc khi dùng VLSM
 
+Mọi lời giải VLSM phải thỏa bốn luật bất biến [3]:
+
+1. **Vừa đủ:** mỗi mạng nhận khối nhỏ nhất thỏa `2ⁿ − 2 ≥ số host cần` [2].
+2. **Đúng ranh giới:** Subnet ID phải là bội số của block size. Ví dụ khối 32 chỉ có thể bắt đầu tại `0, 32, 64, 96, …` [2].
+3. **Không chồng lấn:** địa chỉ đã cấp cho mạng trước thì mạng sau không được đụng vào [2].
+4. **Lớn trước, nhỏ sau:** cấp mạng nhiều host nhất trước, kết thúc bằng các link `/30` [1][2][3].
+
 ✦ *Heuristic* [1]:
 
 - **Cấp khối lớn nhất trước**, các khối nhỏ sau.
 - Mỗi khối kích thước `2ᵏ` phải **bắt đầu tại bội số của `2ᵏ`** (căn lề khối). Ví dụ khối 64 địa chỉ phải bắt đầu tại các địa chỉ chia hết cho 64.
 
-Việc cấp phát thủ công dễ gây **chồng lấn (overlap)** nếu không theo đúng ràng buộc căn lề — xem quy trình chi tiết tại [[chia-subnet-theo-so-host]].
+Vì sao luật 4 tồn tại: khối lớn luôn đòi ranh giới "chặt" hơn khối nhỏ. Nếu cấp khối nhỏ trước, các khối nhỏ có thể nằm đúng chỗ khối lớn cần, và không còn ranh giới nào cho khối lớn [3].
 
-Xem thêm: [[classless-addressing]], [[cidr]], [[chia-subnet-theo-so-host]]
+Việc cấp phát thủ công dễ gây **chồng lấn (overlap)** nếu không theo đúng ràng buộc căn lề — xem quy trình chi tiết tại [[chia-subnet-theo-so-host]] và [[vlsm-br1-dat-tai-96-27-chong-lan-voi-hq-lan2]].
+
+Xem thêm: [[classless-addressing]], [[cidr]], [[chia-subnet-theo-so-host]], [[chia-mang-khong-tao-dia-chi-moi-chi-phan-vung-lai-khoi]], [[phuong-an-vlsm-hop-le-khac-toi-uu-uu-tien-khoi-trong-lien-ke-lon-nhat]]
 
 ## Tài liệu tham khảo
 
 [1] "IPv4: địa chỉ, mạng và chia mạng con — từ classful đến classless," *ip-addressing-learn* (tài liệu người dùng cung cấp; không ghi rõ tác giả), 2026-10-05.
 
 [2] "Why do we need IP Subnetting?," Introduction to IPv4 Subnetting, NetworkAcademy.io.
+
+[3] NetworkAcademy.io. "VLSM without Binary Example 1." [Online]. Available: https://www.networkacademy.io/ccna/ip-subnetting/vlsm-without-binary-example1

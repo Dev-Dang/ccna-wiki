@@ -11,8 +11,8 @@ created: 2026-10-05
 updated: 2026-10-05
 version: 2
 generator: foundation-zero-qa
+_organized: true
 ---
-
 # IPv4: địa chỉ, mạng và chia mạng con — từ classful đến classless
 
 Toàn bộ chuyện chia mạng con (subnetting) xuất phát từ một ràng buộc kép: không gian địa chỉ hữu hạn, và cơ chế quảng bá (broadcast) không mở rộng tốt (tiếng Anh hay nói "broadcast domains don't scale"). Câu này không có nghĩa là về nguyên tắc không thể làm miền quảng bá to hơn, mà là càng to thì chi phí càng cao đến mức không chấp nhận được (xem mục "Mạng IP là một miền quảng bá"). Hai ràng buộc này giải thích vì sao mô hình địa chỉ đổi từ classful sang classless, và vì sao ta phải tính toán prefix thay vì cấp phát tùy tiện.
@@ -29,7 +29,7 @@ Về chuyện "cạn kiệt", chúng ta cần chính xác hơn so với cách n�
 - Sau đó, từng RIR cạn kho địa chỉ cấp phát thông thường vào các thời điểm khác nhau [3]:
 
 | RIR | Khu vực | Thời điểm cạn |
-|---|---|---|
+| --- | --- | --- |
 | APNIC | Châu Á – Thái Bình Dương | 15/04/2011 |
 | LACNIC | Mỹ Latinh – Caribbean | 10/06/2014 |
 | ARIN | Bắc Mỹ | 24/09/2015 |
@@ -106,7 +106,7 @@ Vì vậy số host khả dụng là 2ⁿ − 2, với n là số bit host. ✦ 
 Bảng tra nhanh cho các prefix hay gặp (tính từ công thức trên):
 
 | Prefix | Mask | Số bit host | Tổng địa chỉ | Host khả dụng | Bước nhảy (block size) ở octet cuối |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | /24 | 255.255.255.0 | 8 | 256 | 254 | 256 |
 | /25 | 255.255.255.128 | 7 | 128 | 126 | 128 |
 | /26 | 255.255.255.192 | 6 | 64 | 62 | 64 |
@@ -115,7 +115,7 @@ Bảng tra nhanh cho các prefix hay gặp (tính từ công thức trên):
 | /29 | 255.255.255.248 | 3 | 8 | 6 | 8 |
 | /30 | 255.255.255.252 | 2 | 4 | 2 | 4 |
 
-✦ Heuristic: bước nhảy = 256 trừ giá trị octet của mask. Các subnet bắt đầu tại bội số của bước nhảy: với /26 thì 0, 64, 128, 192. Các prefix /31 và /32 là trường hợp đặc biệt, xem mục classless.
+✦ Heuristic: bước nhảy = 256 - giá trị octet của mask. Các subnet bắt đầu tại bội số của bước nhảy: với /26 thì 0, 64, 128, 192. Các prefix /31 và /32 là trường hợp đặc biệt, xem mục classless.
 
 ### Cách thiết bị quyết định: AND bit
 
@@ -129,14 +129,15 @@ flowchart TD
     D --> E["Router tra bảng định tuyến<br/>và chuyển tiếp"]
 ```
 
+
 Phép AND bit: ở mỗi vị trí bit, kết quả là 1 chỉ khi cả hai bit đều là 1. Vì mask có bit 1 ở phần mạng, bit 0 ở phần host, AND với mask giữ nguyên phần mạng và xóa sạch phần host về 0. Kết quả chính là địa chỉ mạng.
 
 ### Ví dụ chi tiết: host 10.4.21.43, mask 255.0.0.0
 
 ✦ Ví dụ minh họa. Trước hết đổi sang nhị phân (mỗi octet 8 bit):
 
-| | Octet 1 | Octet 2 | Octet 3 | Octet 4 |
-|---|---|---|---|---|
+|  | Octet 1 | Octet 2 | Octet 3 | Octet 4 |
+| --- | --- | --- | --- | --- |
 | Host 10.4.21.43 | 00001010 | 00000100 | 00010101 | 00101011 |
 | Mask 255.0.0.0 | 11111111 | 00000000 | 00000000 | 00000000 |
 | Host AND mask | 00001010 | 00000000 | 00000000 | 00000000 |
@@ -144,14 +145,14 @@ Phép AND bit: ở mỗi vị trí bit, kết quả là 1 chỉ khi cả hai bit
 Kết quả AND là 10.0.0.0, tức host này thuộc mạng 10.0.0.0/8. Bây giờ host muốn gửi tới hai đích khác nhau. Mask của host vẫn là 255.0.0.0, nên với mỗi đích ta AND với mask đó:
 
 | Đích | Octet 1 của đích | AND mask | Kết quả | So với 10.0.0.0 |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | 10.122.45.155 | 00001010 | 00001010 | 10.0.0.0 | Giống, cùng mạng |
 | 13.1.2.3 | 00001101 | 00001101 | 13.0.0.0 | Khác, khác mạng |
 
 Chỉ octet đầu cần xét vì ba octet sau của mask toàn 0, nên AND luôn cho 0 bất kể giá trị. Từ kết quả đó, hành động của host khác nhau:
 
-| | Đích 10.122.45.155 | Đích 13.1.2.3 |
-|---|---|---|
+|  | Đích 10.122.45.155 | Đích 13.1.2.3 |
+| --- | --- | --- |
 | Quyết định | Cùng mạng | Khác mạng |
 | Host ARP hỏi ai? | Hỏi chính IP đích 10.122.45.155 | Hỏi MAC của default gateway (ví dụ 10.0.0.1, ✦ giả định) |
 | MAC đích của frame | MAC của 10.122.45.155 | MAC của gateway |
@@ -162,7 +163,13 @@ Hàng thứ ba và thứ tư của bảng là điểm hay bị nhầm: khi đi q
 
 ### Mask không rơi đúng ranh giới octet
 
-Với mask không rơi đúng ranh giới octet, phép AND vẫn y như vậy, chỉ khó nhẩm hơn. ✦ Ví dụ minh họa: 10.1.1.2 với mask 255.255.224.0 (/19). Hai octet đầu của mask đều là 255 nên giữ nguyên 10.1. Octet thứ ba: 1 = 00000001, 224 = 11100000, AND cho 00000000 = 0. Octet thứ tư của mask là 0 nên về 0. Vậy mạng là 10.1.0.0/19. Bước nhảy là 256 − 224 = 32, nên mạng này trải từ 10.1.0.0 đến 10.1.31.255, với 2¹³ − 2 = 8.190 host khả dụng.
+Với mask không rơi đúng ranh giới octet, phép AND vẫn y như vậy, chỉ khó nhẩm hơn. 
+
+✦ Ví dụ minh họa: 10.1.1.2 với mask 255.255.224.0 (/19). 
+Hai octet đầu của mask đều là 255 nên giữ nguyên 10.1. 
+Octet thứ ba: 1 = 00000001, 224 = 11100000, AND cho 00000000 = 0. 
+Octet thứ tư của mask là 0 nên về 0. Vậy mạng là 10.1.0.0/19. 
+Bước nhảy là 256 − 224 = 32, nên mạng này trải từ 10.1.0.0 đến 10.1.31.255, với 2¹³ − 2 = 8.190 host khả dụng.
 
 Ở mô hình classful, mask không cần khai báo vì nó được suy ra từ chính địa chỉ. Trước khi xem mô hình đó, ta trả lời một câu hỏi hay gặp khi bắt đầu chia mạng.
 
@@ -182,7 +189,7 @@ Một lưu ý nhỏ: 192.168.1.0/24 thuộc dải private của RFC 1918 [7], n�
 ✦ Ví dụ minh họa. Mỗi /26 có 64 địa chỉ, 62 host khả dụng. Lấy địa chỉ đầu tiên khả dụng làm gateway (một thói quen phổ biến, không phải bắt buộc):
 
 | Subnet | Địa chỉ mạng | Host khả dụng | Địa chỉ quảng bá | Gateway (giả định) |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | 1 | 192.168.1.0/26 | .1 – .62 | .63 | 192.168.1.1 |
 | 2 | 192.168.1.64/26 | .65 – .126 | .127 | 192.168.1.65 |
 | 3 | 192.168.1.128/26 | .129 – .190 | .191 | 192.168.1.129 |
@@ -198,10 +205,11 @@ flowchart LR
     SW2 --- B["Host B<br/>192.168.1.70/26"]
 ```
 
+
 Quyết định của A, trong octet cuối (mask /26 là 255.255.255.192, tức 11000000 ở octet cuối):
 
-| | Octet cuối dạng nhị phân | AND 11000000 | Mạng |
-|---|---|---|---|
+|  | Octet cuối dạng nhị phân | AND 11000000 | Mạng |
+| --- | --- | --- | --- |
 | A: .10 | 00001010 | 00000000 = 0 | 192.168.1.0 |
 | B: .70 | 01000110 | 01000000 = 64 | 192.168.1.64 |
 
@@ -216,17 +224,20 @@ Hai kết quả khác nhau, nên A coi B là khác mạng và gửi cho gateway 
 
 ## Mô hình classful và những vùng địa chỉ đặc biệt
 
-Mô hình classful xuất hiện trong đặc tả IP năm 1981 (RFC 791) và chia không gian thành năm lớp [6]. Lớp quyết định mask, nên địa chỉ ngụ ý mask [1]:
+Mô hình classful xuất hiện trong đặc tả IP năm 1981 (RFC 791) và chia không gian thành năm "lớp" (class) [6]. Class quyết định mask, nên địa chỉ ngụ ý mask [1]:
 
-| Lớp | Bit đầu | Mask | Dải địa chỉ | Số mạng (dùng được) | Host khả dụng/mạng |
-|---|---|---|---|---|---|
+| Class | Bit đầu | Mask | Dải địa chỉ | Số mạng (dùng được) | Host khả dụng/mạng |
+| --- | --- | --- | --- | --- | --- |
 | A | 0 | /8 | 1.0.0.0 – 126.255.255.255 | 126 | 16.777.214 |
 | B | 10 | /16 | 128.0.0.0 – 191.255.255.255 | 16.384 | 65.534 |
 | C | 110 | /24 | 192.0.0.0 – 223.255.255.255 | 2.097.152 | 254 |
 | D | 1110 | — | 224.0.0.0 – 239.255.255.255 | Multicast | — |
 | E | 1111 | — | 240.0.0.0 – 255.255.255.255 | Dự trữ | — |
 
-Cách nhận ra lớp là nhìn vài bit đầu của octet đầu tiên [6]. ✦ Ví dụ minh họa: 192 = 11000000, bắt đầu bằng 110, nên 192.168.1.45 thuộc lớp C và mask mặc định là /24. Với 144 = 10010000, bắt đầu bằng 10, nên 144.1.32.45 thuộc lớp B và mask là /16.
+Cách nhận ra class là nhìn vài bit đầu của octet đầu tiên [6]. 
+
+✦ Ví dụ minh họa: 192 = 11000000, bắt đầu bằng 110, nên 192.168.1.45 thuộc lớp C và mask mặc định là /24. 
+    Với 144 = 10010000, bắt đầu bằng 10, nên 144.1.32.45 thuộc lớp B và mask là /16.
 
 Các số "dùng được" ở trên lệch nhẹ so với bảng trong tài liệu gốc [1] vì hai lý do [6][14]:
 
@@ -236,7 +247,7 @@ Các số "dùng được" ở trên lệch nhẹ so với bảng trong tài li�
 ### Các khối địa chỉ đặc biệt cần biết
 
 | Khối | Mục đích | Ghi chú |
-|---|---|---|
+| --- | --- | --- |
 | 0.0.0.0/8 | Dự trữ [6] | Địa chỉ 0.0.0.0 còn gặp trong bảng định tuyến như default route (tuyến mặc định) [15] |
 | 127.0.0.0/8 | Loopback [6] | Giải thích ngay bên dưới |
 | 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 | Private (RFC 1918) [7] | Không định tuyến được trên Internet công cộng |
@@ -288,7 +299,7 @@ Một hệ quả thứ hai, sẽ được nói ở mục CIDR: cấp nhiều kh�
 - Nếu dùng /31 cho đường WAN theo RFC 3021 [10] (xem mục sau), mỗi đường chỉ tốn 2 địa chỉ, tổng WAN là 100 và tổng cộng là 900.
 
 | Cách cấp | LAN (50 cửa hàng) | WAN (50 đường) | Tổng |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Classful (/24 mỗi mạng) | 12.800 | 12.800 | 25.600 |
 | Classless, /28 và /30 | 800 | 200 | 1.000 |
 | Classless, /28 và /31 | 800 | 100 | 900 |
@@ -309,7 +320,7 @@ CIDR ra đời năm 1993 (RFC 1519, sau được thay bởi RFC 4632), một ph�
 Đề bài trong tài liệu gốc: khối 200.1.1.0/24, ba cửa hàng cần 32, 16 và 16 host [1]. Cái bẫy ở đây là mỗi subnet mất 2 địa chỉ cho địa chỉ mạng và quảng bá, nên "32 host" cần ít nhất 34 địa chỉ, tức là 64:
 
 | Cửa hàng | Host cần | Cần tối thiểu | Prefix | Khối được cấp | Host khả dụng |
-|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- |
 | New York | 32 | 34 → 64 | /26 | 200.1.1.0/26 | .1 – .62 |
 | Cửa hàng 2 | 16 | 18 → 32 | /27 | 200.1.1.64/27 | .65 – .94 |
 | Cửa hàng 3 | 16 | 18 → 32 | /27 | 200.1.1.96/27 | .97 – .126 |
@@ -325,7 +336,7 @@ CIDR ra đời năm 1993 (RFC 1519, sau được thay bởi RFC 4632), một ph�
 ### So sánh và đánh đổi
 
 | Tiêu chí | Classful | Classless |
-|---|---|---|
+| --- | --- | --- |
 | Mask | Cố định theo lớp, suy ra từ địa chỉ [1] | Tùy ý, phải khai báo tường minh [1] |
 | Độ vừa khít với nhu cầu | Thấp, lãng phí khối lớn [1] | Cao, chọn cỡ khối theo nhu cầu [1] |
 | Quy mô bảng định tuyến | Phình do nhiều khối rời rạc [9] | Gom được nếu cấp phát liền kề [9] |
@@ -363,6 +374,7 @@ sequenceDiagram
     Note over GW: Tra bảng NAT, đổi IP đích về 192.168.1.100
     GW->>PC: IP đích 192.168.1.100
 ```
+
 
 Từng bước:
 
@@ -402,7 +414,7 @@ IPv6 giải quyết tận gốc bằng địa chỉ 128 bit, khoảng 3,4 × 10�
 Tài liệu gốc [1] rất tốt cho việc dựng khái niệm, nhưng có vài điểm cần hiệu chỉnh khi ôn thi hoặc dùng làm tham chiếu:
 
 | Điểm trong tài liệu | Vấn đề | Cách hiểu đúng |
-|---|---|---|
+| --- | --- | --- |
 | IPv4 "chính thức cạn kiệt tháng 4/2017" | Không có một mốc toàn cầu | IANA hết 02/2011; mốc 04/2017 khớp AfriNIC [2][3] |
 | Lớp A có 128 mạng | Hai mạng bị dự trữ | 126 mạng dùng được (0/8 và 127/8 bị dự trữ) [6][14] |
 | Bảng lớp ghi số địa chỉ mỗi mạng | Tính cả địa chỉ mạng và quảng bá | Host khả dụng là 2ⁿ − 2 |
@@ -444,7 +456,7 @@ Tài liệu gốc [1] rất tốt cho việc dựng khái niệm, nhưng có và
 
 [14] "All About IP Classes," Union Test Prep. [Online]. Available: https://uniontestprep.com/comptia-a-core-series-exam/resources/all-about-ip-classes-8f330a2b-08ab-42a1-841d-672528698097
 
-[15] H. A. Ameen, "Computer Networks, Lecture 4," Al-Mustaqbal University College, 2021–2022. [Online]. Available: https://uomus.edu.iq/img/lectures21/MUCLecture_2021_112411492.pdf
+[15] H. A. Ameen, "Computer Networks, Lecture 4," Al-Mustaqbal University College, 2021–2022. [Online]. Available: https://uomus.edu.iq/img/lectures21/MUCLecture*2021*112411492.pdf
 
 [16] "PAT — Port Address Translation," Training Camp Glossary. [Online]. Available: https://trainingcamp.com/glossary/pat/
 
@@ -457,6 +469,6 @@ Tài liệu gốc [1] rất tốt cho việc dựng khái niệm, nhưng có và
 ## Revision History
 
 | Version | Ngày | Thay đổi |
-|---|---|---|
+| --- | --- | --- |
 | 1 | 2026-10-05 | Initial draft |
 | 2 | 2026-10-05 | Sửa theo phản hồi: (1) đổi giải thích MAC address thành "địa chỉ phần cứng của card mạng" và thêm mục thuật ngữ nền (MAC, frame, switch, router, default gateway, host); (2) giải thích từng bước "cùng subnet giao tiếp trực tiếp qua switch, không qua router" và đối chiếu với "khác subnet"; (3) thêm mục "Chia một khối thành nhiều subnet" trả lời vì sao các subnet chia từ cùng khối 192.168.1.0/24 vẫn phải qua router, kèm ví dụ bốn subnet /26 và sơ đồ; (4) làm rõ "broadcast không mở rộng được" nghĩa là không mở rộng tốt (don't scale), kèm ví dụ số; (5) viết lại ví dụ 10.4.21.43/255.0.0.0 với đổi nhị phân, AND từng octet, và bảng hành động (ARP, MAC đích, IP đích); (6) giải thích chi tiết "hơn 100 mạng lớp C" và "/30 tốn thêm 200" theo từng bước, kèm bảng so sánh, sửa phép tính /28 để tính cả địa chỉ gateway; (7) viết lại câu CIDR cho dễ hiểu và rút gọn phần định tuyến, bỏ hàng và đoạn nói về giao thức định tuyến; (8) thêm mục giải thích loopback (127.0.0.0/8, localhost, loopback interface của router); (9) mở rộng NAT: vì sao private không ra Internet, luồng gói tin qua default gateway, PAT, phân biệt gateway và thiết bị NAT; (10) bổ sung: bảng tra nhanh prefix /24–/30, địa chỉ mạng/quảng bá/host khả dụng, cách nhận lớp từ bit đầu, bảng khối địa chỉ đặc biệt (0/8, 127/8, private, 100.64/10, 169.254/16, multicast, dự trữ), mask không rơi ranh giới octet (/19), lưu ý 192.168.x.x là dải private, mục tóm tắt để ôn; (11) thêm nguồn [15]–[18]. |

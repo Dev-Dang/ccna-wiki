@@ -4,7 +4,7 @@ domain: networking
 source_type: file
 date: 2026-10-05
 status: Draft
-_organized: false
+_organized: true
 _icon: lightbulb
 claim: "Prefix /31 cho phép dùng cả hai địa chỉ cho host trên link điểm-điểm (point-to-point), tiết kiệm địa chỉ so với /30"
 confidence: medium

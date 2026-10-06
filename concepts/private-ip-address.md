@@ -4,7 +4,7 @@ domain: networking
 source_type: file
 date: 2026-10-05
 status: Draft
-_organized: false
+_organized: true
 _icon: box
 aliases: ["private address", "địa chỉ private", "RFC 1918", "địa chỉ riêng", "shared address space"]
 Related to:
@@ -17,6 +17,8 @@ sources:
     ref: "[1]"
   - id: "why-do-we-need-ip-subnetting-vi"
     ref: "[2]"
+_favorite: true
+_favorite_index: 1
 ---
 
 # Địa chỉ private (private IP address)

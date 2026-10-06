@@ -29,6 +29,8 @@ Mặt nạ là một dãy 32 bit, viết cùng dạng bốn số thập phân nh
 - Các bit **1** đánh dấu **phần mạng (network portion)**.
 - Các bit **0** đánh dấu **phần host (host portion)**.
 
+Cách viết ngắn của mặt nạ là **prefix `/n`** — số n là số bit đầu thuộc phần mạng. Số bit host = `32 − n`; ví dụ `/26` có `32 − 26 = 6` bit host.
+
 Ví dụ `255.0.0.0` là 8 bit 1 rồi 24 bit 0 → octet đầu là phần mạng, ba octet sau là phần host.
 
 ## Cơ chế: phép AND bit
