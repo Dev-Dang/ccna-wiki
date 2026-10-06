@@ -68,9 +68,9 @@ Hệ điều hành chịu trách nhiệm:
 
 \* Cấp phát và giải phóng không gian bộ nhớ khi cần thiết.
 
-### \## 3. Quản lý lưu trữ
+### 6. Quản lý lưu trữ
 
-#### \### Quản lý hệ thống tập tin
+#### Quản lý hệ thống tập tin
 
 Hệ điều hành chịu trách nhiệm:
 
@@ -84,7 +84,7 @@ Hệ điều hành chịu trách nhiệm:
 
 \* Sao lưu các tập tin trên các thiết bị lưu trữ ổn định, không mất dữ liệu khi mất điện.
 
-#### \### Quản lý bộ nhớ lưu trữ lớn
+#### Quản lý bộ nhớ lưu trữ lớn
 
 Hệ điều hành chịu trách nhiệm:
 
@@ -127,11 +127,11 @@ Hệ điều hành chịu trách nhiệm:
 
 **5. Cho biết năm hoạt động chính của hệ điều hành trong quản lý hệ thống tập tin (file system management)**
 
-- a. ............................................................................................
-- b. ............................................................................................
-- c. ............................................................................................
-- d. ............................................................................................
-- e. ............................................................................................
+- ==a. Tạo và xóa tập tin (file).==
+- ==b. Tạo và xóa thư mục (directory).==
+- ==c. Cung cấp các thao tác cơ bản (primitive) để thao tác trên tập tin và thư mục.==
+- ==d. Ánh xạ tập tin lên bộ nhớ phụ (secondary storage).==
+- ==e. Sao lưu tập tin lên thiết bị lưu trữ ổn định (stable storage).==
 
 **6. Cấp phát bộ nhớ theo kiểu MVT (Multiprogramming with a Variable number of Tasks)**
 
@@ -142,16 +142,13 @@ Hệ điều hành chịu trách nhiệm:
 
 **7. Trong quản lý bộ nhớ hãy cho biết khái niệm External Fragment là gì?**
 
-
 ...................................................................................................
 
 **8. Trong quản lý bộ nhớ hãy cho biết khái niệm Internal Fragment là gì?**
 
-
 ...................................................................................................
 
 **9. Trong quản lý bộ nhớ hãy cho biết khái niệm Compaction là gì? Điều kiện để thực hiện compaction?**
-
 
 ...................................................................................................
 
@@ -257,8 +254,10 @@ Hệ điều hành chịu trách nhiệm:
 
 - a. 13.6
 - b. 7.5
-- c. 7.0
+- ==c. 7.0==
 - d. Khác
+
+**Giải thích:** Thứ tự P1 (0–12), P2 (12–20), P3 (20–26), P4 (26–30). Waiting: 0, 7, 10, 11. Tổng 28, chia 4 = **7.0**.
 
 **25. Giả sử tại thời điểm đang xét, hệ thống có các process như hình dưới đây. Thời gian chờ trung bình (average waiting time) các process với giải thuật định thời SJF (Shortest-Job-First scheduling) là bao nhiêu?**
 
@@ -269,12 +268,12 @@ Hệ điều hành chịu trách nhiệm:
 | P3 | 6 |
 | P4 | 4 |
 
-- a. 8.0
+- ==a. 8.0==
 - b. 7.5
 - c. 13.6
 - d. Khác
 
-Dưới đây là toàn bộ các câu hỏi còn lại trên Trang 4/6:
+**Giải thích:** Thứ tự P4, P3, P2, P1. Waiting: P4 = 0, P3 = 4, P2 = 10, P1 = 18. Tổng 32, chia 4 = **8.0**.
 
 **26. Giả sử hệ thống có các process như hình dưới đây. Thời gian chờ trung bình (average waiting time) các process với giải thuật định thời preemptive SJF (Shortest-Job-First scheduling) là bao nhiêu?**
 
@@ -287,8 +286,12 @@ Dưới đây là toàn bộ các câu hỏi còn lại trên Trang 4/6:
 
 - a. 8.0
 - b. 7.5
-- c. 5.5
+- ==c. 5.5==
 - d. Khác
+
+**Giải thích:** Không có lần ngắt nào xảy ra vì phần còn lại của process đang chạy luôn nhỏ hơn hoặc bằng process mới đến. Thứ tự P1 (0–12), P3 (12–18), P4 (18–22), P2 (22–30). Waiting: P1 = 0, P2 = 30−5−8 = 17, P3 = 18−10−6 = 2, P4 = 22−15−4 = 3. Tổng 22, chia 4 = **5.5**.
+
+![image.png](attachments/1791294525436-image.png)
 
 **27. Giả sử hệ thống có các process như hình dưới đây. Thời gian chờ trung bình (average waiting time) các process với giải thuật định thời preemptive SJF (Shortest-Job-First scheduling) là bao nhiêu?**
 
@@ -300,9 +303,11 @@ Dưới đây là toàn bộ các câu hỏi còn lại trên Trang 4/6:
 | P4 | 12 | 5 |
 
 - a. 7.75
-- b. 6.00
+- ==b. 6.00==
 - c. 8.75
 - d. Khác
+
+![image.png](attachments/1791294790954-image.png)
 
 **28. Giả sử hệ thống có các process như hình dưới đây. Thời gian chờ trung bình (average waiting time) các process với giải thuật định thời nonpreemptive SJF (Shortest-Job-First scheduling) là bao nhiêu?**
 
@@ -314,9 +319,11 @@ Dưới đây là toàn bộ các câu hỏi còn lại trên Trang 4/6:
 | P4 | 16 | 1 |
 
 - a. 4.00
-- b. 5.50
+- ==b. 5.50==
 - c. 6.75
 - d. Khác
+
+![image.png](attachments/1791295217059-image.png)
 
 **29. Giả sử tại thời điểm đang xét, hệ thống có các process như hình dưới đây. Thời gian chờ trung bình (average waiting time) các process với giải thuật định thời RR (Round-Robin scheduling) là bao nhiêu nếu quantum là 6 miligiây (ms)?**
 
@@ -327,10 +334,12 @@ Dưới đây là toàn bộ các câu hỏi còn lại trên Trang 4/6:
 | P3 | 16 |
 | P4 | 4 |
 
-- a. 20.0
+- ==a. 20.0==
 - b. 9.0
 - c. 10.0
 - d. Khác
+
+![image.png](attachments/1791296120999-image.png)
 
 **30. Để xử lý vùng critical section, hệ điều hành có thể sử dụng một trong hai phương pháp là preemptive kernel và nonpreemptive kernel. Trong đó nonpreemptive kernel là phương pháp**
 

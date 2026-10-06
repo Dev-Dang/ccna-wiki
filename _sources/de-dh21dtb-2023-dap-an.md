@@ -294,7 +294,9 @@ _width: wide
 - [ ] c. 10.0
 - [ ] d. Khác
 
-**Giải thích:** Gantt: P1 0–6, P2 6–12, P3 12–18, P4 18–22 (xong), P1 22–28 (xong), P2 28–30 (xong), P3 30–36, P3 36–40 (xong). Waiting: P1 = 16, P2 = 22, P3 = 24, P4 = 18. Tổng 80, chia 4 = **20.0**.
+**Giải thích:** Gantt: P1 0–6, P2 6–12, P3 12–18, P4 18–22 (xong), P1 22–28 (xong), P2 28–30 (xong), P3 30–36, P3 36–40 (xong). 
+
+Waiting: P1 = 16, P2 = 22, P3 = 24, P4 = 18. Tổng 80, chia 4 = **20.0**.
 
 ---
 
