@@ -11,6 +11,7 @@ created: 2026-10-06
 version: 3
 generator: foundation-zero-qa
 _width: wide
+_organized: true
 ---
 
 # VLSM từ đầu: sáu cách chia 192.168.40.0/24

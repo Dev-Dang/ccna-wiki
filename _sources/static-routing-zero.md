@@ -3,15 +3,15 @@ title: "Định tuyến tĩnh từ đầu: static route, summary route, default 
 topic: "static-routing"
 depth: zero
 scope: all
-source: "Chapter04_Routing.ppt (Mạng Máy Tính Nâng Cao, HK1 26-27); Route Summarization — NetworkLessons.com; ip route Command Explained — ComputerNetworkingNotes"
-questions: 14
+source: "Chapter04_Routing.ppt (Mạng Máy Tính Nâng Cao, HK1 26-27); Route Summarization — NetworkLessons.com; ip route Command Explained — ComputerNetworkingNotes; Hop (networking) — Wikipedia; Stub network — Wikipedia"
+questions: 16
 bloom-level: 4
 language: vi
 created: 2026-10-06
 version: 1
 generator: foundation-zero-qa
+_width: wide
 ---
-
 # Định tuyến tĩnh từ đầu: static route, summary route, default route và lab Packet Tracer
 
 ## Bối cảnh: vì sao cần một bảng chỉ đường
@@ -31,7 +31,7 @@ Trước khi cấu hình, cần đọc được nội dung bảng định tuyế
 Mỗi dòng trong bảng mô tả một mạng đích, gồm bốn thông tin [1]:
 
 | Thành phần | Ý nghĩa |
-|---|---|
+| --- | --- |
 | Nguồn thông tin định tuyến | Tuyến này do đâu mà có (code `C`, `S`, hay chữ cái giao thức) |
 | Địa chỉ mạng và mặt nạ mạng con (subnet mask) | Mạng đích là mạng nào |
 | Địa chỉ IP của next-hop router | Gói phải giao cho router kế tiếp nào |
@@ -66,7 +66,99 @@ Do các giao thức định tuyến tự trao đổi giữa các router. Các gi
 - Giao thức định tuyến là "ngôn ngữ" để router chia sẻ thông tin với nhau, từ đó xây và duy trì bảng định tuyến [1].
 - Hai việc nó làm: **khám phá mạng** và **cập nhật/duy trì bảng định tuyến** [1]. Nhờ đó router tự bù đắp khi cấu trúc mạng thay đổi mà không cần quản trị viên can thiệp [1].
 
-## Tuyến tĩnh — khi nào dùng và cơ chế hoạt động
+## Các thuật ngữ thường gặp trong định tuyến tĩnh
+
+Bảng tổng hợp các khái niệm xuất hiện trong bài này và trong mọi tài liệu Cisco về định tuyến tĩnh:
+
+| Thuật ngữ | Định nghĩa ngắn | Xuất hiện ở |
+| --- | --- | --- |
+| **Static route** | Tuyến do quản trị viên cấu hình tay, code `S` | Mục Tuyến tĩnh |
+| **Default static route** | Tuyến khớp mọi đích (`0.0.0.0 0.0.0.0`) | Mục Tuyến mặc định |
+| **Summary route** | Tuyến gộp nhiều mạng con thành một dòng | Mục Tuyến tổng hợp |
+| **Next-hop** | Thiết bị liền sau trên đường đi tới đích | Mục Nền tảng |
+| **Exit interface** | Cổng vật lý mà gói được đẩy ra khỏi router | Mục Nền tảng |
+| **Recursive lookup** | Quá trình tra bảng tiếp để phân giải next-hop thành cổng ra | Mục Nền tảng |
+| **Administrative Distance (AD)** | Độ tin cậy của nguồn tuyến; tuyến nào AD nhỏ hơn thắng | Mục Khi nào dùng cái nào |
+| **Longest prefix match** | Quy tắc chọn tuyến: prefix dài hơn thắng | Mục Lời giải bài 7 |
+| **Stub network** | Mạng chỉ có một tuyến ra ngoài | Mục Thuật ngữ stub |
+| **Stub router** | Router chỉ có một router khác để kết nối | Mục Thuật ngữ stub |
+| **Transit network** | Mạng chứa ≥ 2 router, cho phép thông tin đi xuyên qua | Mục Thuật ngữ stub |
+| **Floating static route** | Tuyến tĩnh có AD cao hơn tuyến chính, dùng làm backup | Mục Khi nào dùng cái nào |
+| **Point-to-point link** | Link chỉ có hai đầu, mỗi cổng đúng một hàng xóm | Mục Bẫy Ethernet |
+| **Multi-access link** | Link nhiều thiết bị cùng chia sẻ (Ethernet) | Mục Bẫy Ethernet |
+| **Directly connected** | Mạng được thêm vào bảng khi cổng `up`, code `C` | Mục Ba nguồn gốc |
+| **DCE / DTE** | Thiết bị tạo xung nhịp / thiết bị cuối (router) trong kết nối WAN | Mục Bước 2 lab |
+| **Hub-and-spoke** | Mô hình một router trung tâm nối nhiều router nhánh | Mục Khi nào chọn tuyến tĩnh |
+| **Equal-cost load balancing** | Gửi song song qua nhiều cổng khi cùng metric | Mục Ba nguồn gốc |
+| **CIDR / Route aggregation** | Gom tuyến, cơ sở của summary route | Mục Tuyến tổng hợp |
+| **ARP** | Giao thức phân giải địa chỉ IP → MAC trên IPv4 | Mục Bẫy Ethernet |
+| **NDP** | Giao thức tương tự ARP cho IPv6 | Mục Nền tảng |
+| **Prefix** | Phần đầu của dải địa chỉ, viết dạng `/n` | Mục Tuyến tổng hợp |
+
+### Hop, next-hop và mô hình chỉ đường
+
+Trước khi đi vào ba kỹ thuật, cần chốt cách một router "nghĩ" về đường đi.
+
+**Hop (chặng)** là một lần gói tin chuyển từ phân đoạn mạng này sang phân đoạn kế tiếp. Trên mạng IP, mỗi router trên đường đi tính là một hop, và router giảm trường TTL (Time to Live — thời gian sống) của gói tin để chặn vòng lặp vô hạn [4].
+
+**Next-hop** là thiết bị **liền sau** trên đường đi tới đích, xét từ góc nhìn của router hiện tại [4].
+
+Điểm cốt lõi của định tuyến IP: **mỗi gateway chỉ biết một bước** trên đường đi, không ai biết toàn bộ đường đi [4]. Không router nào có "bản đồ" đầy đủ; chúng chỉ trả lời được câu hỏi *bước tiếp theo của tôi là ai*.
+
+**Mô hình next-hop** là hệ quả trực tiếp:
+
+- Bảng định tuyến thực chất là **danh sách các mạng đích mà ta đã biết next-hop của chúng** [4].
+- Chính vì chỉ lưu next-hop mà bảng giữ được kích thước nhỏ [4]. Nếu mỗi dòng phải ghi cả đường đi đầy đủ, bảng sẽ phình không kiểm soát.
+- Thiết bị tiêu dùng (PC, điện thoại) thường chỉ có tuyến nội bộ + một cổng mặc định; router cần nhiều tuyến hơn vì phải chuyển tiếp giữa các mạng [4].
+- **Ràng buộc bắt buộc:** next-hop phải **kết nối logic được** với router hiện tại, tạo chuỗi liền mạch từ nguồn tới đích [4]. Nếu router không biết cách đi tới chính hàng xóm đó, tuyến trỏ tới nó vô nghĩa.
+
+**Tra cứu đệ quy (recursive lookup):** bảng định tuyến trả về một next-hop (địa chỉ IP hoặc giao diện), nhưng next-hop đó vẫn phải phân giải tiếp thành địa chỉ tầng liên kết dữ liệu (link-layer address) [4]:
+
+- IPv4 dùng ARP; IPv6 dùng NDP (Neighbor Discovery Protocol — giao thức khám phá hàng xóm) [4].
+- Đây là lý do exit interface tiết kiệm một lần tra: nó bỏ qua bước suy ra cổng ra, chỉ còn bước phân giải link-layer.
+
+✦ Suy luận: địa chỉ next-hop và địa chỉ đích không nhất thiết cùng phiên bản IP — lưu lượng IPv4 có thể chuyển tiếp qua mạng IPv6 [4]. Yêu cầu không phải "cùng phiên bản", mà là "next-hop phải với tới được".
+
+### Stub network và stub router
+
+**Stub network (mạng cụt)** — cách nói thông dụng — là phân đoạn mạng **không biết về mạng khác** [5]. Đặc điểm nhận dạng:
+
+- Dẫn phần lớn lưu lượng không phải nội bộ qua **một đường duy nhất**, chỉ dựa vào một tuyến mặc định [5].
+- Chứa **một router** duy nhất — cổng ra — và **không chuyển tiếp lưu lượng của bên thứ ba** [5].
+- Phân biệt với **transit network (mạng trung chuyển)**: transit network chứa ít nhất hai router và cho phép thông tin đi xuyên qua [5].
+
+✦ Ví dụ minh họa: hòn đảo nối đất liền bằng một cây cầu. Dù xây thêm cầu vật lý, nó vẫn chỉ có một đường logic ra ngoài [5].
+
+Các trường hợp thường gặp [5]:
+
+- LAN doanh nghiệp nối mạng công ty qua **một router** duy nhất.
+- LAN đơn lẻ không bao giờ chuyển tiếp gói giữa các router.
+- Kết nối single-homed (một nhà cung cấp) tới ISP.
+- Stub autonomous system (hệ tự trị cụt) — chỉ nối một AS khác để ra Internet. APNIC ghi nhận 22.272/25.577 AS là stub (30/06/2007) [5].
+
+**Stub router (router cụt)** — theo bài giảng — là router **chỉ có một router khác** mà nó kết nối tới [1]. Tức thiết bị đứng ở lối thoát của stub network.
+
+Cả hai cùng đặc điểm: **chỉ có một đường ra**.
+
+### Tại sao Cisco khuyên dùng default static route cho stub router
+
+Đây là khuyến nghị thường gặp nhất trong tài liệu Cisco về định tuyến tĩnh.
+
+**Bối cảnh:** Cisco nhấn mạnh hai tình huống nên dùng tuyến mặc định [1]:
+
+- Router biên nối ISP (không có khớp cụ thể hơn).
+- **Stub router** — chỉ có một hàng xóm duy nhất.
+
+**Bốn lý do:**
+
+1. **Không có gì để liệt kê chi tiết.** Stub router có một lối thoát. Mọi đích đi qua cùng hàng xóm. Liệt kê từng mạng chi tiết là thừa — kết quả vẫn là "giao cho cùng router đó" [1].
+2. **Một dòng thay cho N dòng.** Thay vì `ip route` cho từng mạng bên ngoài (có thể hàng chục), chỉ cần `ip route 0.0.0.0 0.0.0.0 <next-hop>`. Khi mạng ngoài đổi, không cần sửa [1].
+3. **Tuyến mặc định là gộp tuyến triệt để nhất.** Gộp **toàn bộ** không gian IPv4 thành một entry (prefix `/0`, không bit nào khớp). Mọi lợi ích của route aggregation — bảng nhỏ, ít cập nhật — đạt cực đại ở đây [2].
+4. **Tuyến tĩnh không tự thích ứng, nhưng stub router ít bị ảnh hưởng.** Tuyến tĩnh không tự bù khi topology đổi. Nhưng stub router chỉ có một lối thoát — lối thoát sống thì tuyến đúng; chết thì không có đường khác để chọn. Môi trường này khiến điểm yếu của static route ít tai hại nhất [1].
+
+**Cảnh báo phạm vi:** chỉ đặt tuyến mặc định ở **router biên** hoặc **stub router**. Ở router trung tâm (nhiều lối thoát), nó kéo mọi lưu lượng chưa khớp về một hướng → đi vòng hoặc mất gói [1].
+
+**Heuristic quyết định nhanh:** đếm số lối thoát. Một → tuyến mặc định đúng. Nhiều hơn một → cần tuyến cụ thể hoặc tuyến động.
 
 ### Khi nào chọn tuyến tĩnh
 
@@ -129,7 +221,7 @@ Gộp bốn mạng sau [2]:
 Bước 1 — viết octet thứ ba dạng nhị phân [2]:
 
 | Địa chỉ | Octet 3 (nhị phân) |
-|---|---|
+| --- | --- |
 | 192.168.0.0 | 0000 0000 |
 | 192.168.1.0 | 0000 0001 |
 | 192.168.2.0 | 0000 0010 |
@@ -163,7 +255,7 @@ Liên quan: **stub network** (mạng cụt) là mạng chỉ được truy cập
 
 Tuyến mặc định thực chất là một tuyến tĩnh đặc biệt, dùng đúng format sau [1]:
 
-```text
+```typescript
 ip route 0.0.0.0 0.0.0.0 [ next-hop-address | outgoing interface ]
 ```
 
@@ -208,7 +300,7 @@ Mặc định **mọi cổng serial và Ethernet đều ở trạng thái down**
 
 Cấu hình cổng Ethernet [1]:
 
-```text
+```typescript
 R1(config)# interface fastEthernet 0/0
 R1(config-if)# ip address 172.16.1.1 255.255.255.0
 R1(config-if)# no shutdown
@@ -216,7 +308,7 @@ R1(config-if)# no shutdown
 
 Cấu hình cổng serial [1]:
 
-```text
+```typescript
 R1(config)# interface serial 0/0
 R1(config-if)# ip address 172.16.2.1 255.255.255.0
 R1(config-if)# no shutdown
@@ -231,7 +323,7 @@ Một kết nối WAN có hai phía [1]:
 
 Trong môi trường lab, **một phía của kết nối serial phải được coi là DCE**, và phía đó cần tín hiệu xung nhịp [1]. Cổng serial cần tín hiệu clock để điều khiển nhịp truyền thông [1]:
 
-```text
+```typescript
 R1(config)# interface serial 0/0
 R1(config-if)# clockrate 64000
 ```
@@ -244,13 +336,13 @@ Một tiện ích khi làm việc trên cổng console: vào chế độ cấu h
 
 Tuyến tĩnh theo **next-hop**:
 
-```text
+```
 R1(config)# ip route 172.16.3.0 255.255.255.0 172.16.2.2
 ```
 
 Tuyến tĩnh theo **exit interface**:
 
-```text
+```
 R1(config)# ip route 172.16.3.0 255.255.255.0 serial 0/0
 ```
 
@@ -265,7 +357,7 @@ Chọn dạng nào:
 
 Giả sử R1 cần biết bốn mạng con liền kề `172.16.4.0/24`, `172.16.5.0/24`, `172.16.6.0/24`, `172.16.7.0/24`. Thay vì bốn tuyến, viết một tuyến tổng hợp:
 
-```text
+```
 R1(config)# ip route 172.16.4.0 255.255.252.0 172.16.2.2
 ```
 
@@ -275,13 +367,13 @@ Kiểm tra bằng công thức: 4 mạng → mask octet thứ ba = 256 − 4 = 2
 
 Trên router biên — router chỉ có một đường ra ngoài — thay vì liệt kê mọi mạng, dùng một dòng [1]:
 
-```text
+```vbscript
 R1(config)# ip route 0.0.0.0 0.0.0.0 172.16.2.2
 ```
 
 Hoặc chỉ định cổng ra:
 
-```text
+```
 R1(config)# ip route 0.0.0.0 0.0.0.0 serial 0/0
 ```
 
@@ -290,7 +382,7 @@ R1(config)# ip route 0.0.0.0 0.0.0.0 serial 0/0
 Bảng lệnh xác minh [1]:
 
 | Lệnh | Xem gì |
-|---|---|
+| --- | --- |
 | `show ip route` | Bảng định tuyến |
 | `show ip interface brief` | Tình trạng cổng, dạng rút gọn |
 | `show interfaces` | Toàn bộ cấu hình cổng |
@@ -300,7 +392,7 @@ Bảng lệnh xác minh [1]:
 
 Để quan sát router cài và gỡ tuyến theo thời gian thực, dùng [1]:
 
-```text
+```
 R1# debug ip routing
 ```
 
@@ -317,7 +409,7 @@ Một tuyến tĩnh đã cấu hình có thể cần sửa trong hai trường h
 
 Cách sửa là xoá rồi nhập lại [1]:
 
-```text
+```
 R2(config)# no ip route 172.16.3.0 255.255.255.0 serial0/0/1
 R2(config)# ip route 172.16.3.0 255.255.255.0 serial0/0/0
 ```
@@ -347,7 +439,7 @@ Khi ping thất bại, đừng đoán — đi theo thứ tự [1].
 ## Khi nào dùng cái nào
 
 | Tình huống | Chọn |
-|---|---|
+| --- | --- |
 | Mạng vài router, đường đi cố định | Tuyến tĩnh [1] |
 | Nối Internet qua một ISP duy nhất | Tuyến mặc định về phía ISP [1] |
 | Router biên, chỉ có một router hàng xóm (stub router) | Tuyến mặc định [1] |
@@ -364,14 +456,172 @@ Khi ping thất bại, đừng đoán — đi theo thứ tự [1].
 - Tuyến mặc định khớp mọi đích, nên chỉ nên đặt ở router biên hoặc stub router. Đặt ở router trung tâm có thể kéo gói tin đi vòng.
 - `show cdp neighbors detail` chỉ thấy được hàng xóm kết nối trực tiếp [1].
 - ✦ Suy luận: nếu bảng định tuyến không có mạng kết nối trực tiếp làm nền, mọi tuyến tĩnh trỏ tới next-hop đều vô nghĩa — router không biết đi tới chính cái next-hop đó bằng cách nào.
+- Next-hop trong bảng định tuyến phải "với tới được" từ router hiện tại, tạo chuỗi liền mạch tới đích [4]. Đây là ràng buộc logic, không phải khuyến nghị.
+- Thuật ngữ **stub** dùng ở nhiều tầng khác nhau: `stub network` và `stub router` là khái niệm định tuyến chung [1][5], còn `stub area` / `totally stubby area` là khái niệm riêng trong OSPF — biết tuyến mặc định thay cho danh sách chi tiết [5]. Cùng ý tưởng, khác cơ chế.
 
-## Luyện tập
+## Lời giải bài tập
 
-1. Cấu hình hai router nối nhau bằng serial trong Packet Tracer, đặt `clockrate 64000` ở một phía. Kiểm tra bằng `show ip interface brief` xem cổng serial đã `up` chưa. Nếu chưa, tìm nguyên nhân.
-2. Viết tuyến tĩnh tới mạng sau router kia bằng cả hai dạng (next-hop và exit interface). So sánh dòng tương ứng trong `show ip route`.
-3. Gộp bốn mạng `10.0.4.0/24` → `10.0.7.0/24` thành một tuyến tổng hợp. Tính prefix và mask bằng cả cách nhị phân lẫn cách thập phân, rồi đối chiếu.
-4. Cố tình nhập sai exit interface trong một tuyến tĩnh. Đi theo đúng thứ tự gỡ lỗi (`ping` → `traceroute` → `show ip route`) để tìm ra, rồi sửa bằng cách xoá và nhập lại.
-5. Bật `debug ip routing`, lần lượt xoá rồi thêm một tuyến tĩnh, và đọc các dòng router in ra.
+Phần này đi qua bảy bài, mỗi bài kèm câu trả lời đầy đủ để bạn tự kiểm tra mà không cần mở phần khác.
+
+### Bài 1 — Cổng serial không lên `up`
+
+**Đề bài.** Cấu hình hai router nối nhau bằng serial trong Packet Tracer, đặt `clockrate 64000` ở một phía. Kiểm tra bằng `show ip interface brief` xem cổng serial đã `up` chưa.
+
+**Lời giải.**
+
+Ba nguyên nhân thường gặp, theo thứ tự kiểm tra:
+
+1. **Chưa** `no shutdown`**.** Mặc định mọi cổng serial và Ethernet đều down [1]. Chạy `show ip interface brief` — nếu cột `Status` ghi `administratively down`, nghĩa là bạn chưa bật. Vào interface và chạy `no shutdown`.
+2. **Quên** `clockrate`**.** Một phía của kết nối serial phải được coi là DCE và cần tín hiệu xung nhịp [1]. Nếu cổng `Status` ghi `down` dù đã `no shutdown`, kiểm tra phía DCE. Trong Packet Tracer, đầu dây có biểu tượng đồng hồ là đầu DCE — đặt `clockrate 64000` ở đó.
+3. **Chưa gán địa chỉ IP hoặc gán sai dải.** Cổng vẫn `down` nếu thiếu `ip address`, hoặc hai đầu không nằm cùng subnet.
+
+Kết quả mong đợi: cả cột `Status` và `Protocol` đều ghi `up`.
+
+### Bài 2 — Hai dạng tuyến tĩnh cho cùng một đích
+
+**Đề bài.** Viết tuyến tĩnh tới mạng sau router kia bằng cả hai dạng (next-hop và exit interface), rồi so sánh dòng trong `show ip route`.
+
+**Lời giải.**
+
+Giả sử mạng đích là `172.16.3.0/24`, hàng xóm `172.16.2.2`, cổng nối `serial 0/0`:
+
+```
+R1(config)# ip route 172.16.3.0 255.255.255.0 172.16.2.2
+R1(config)# ip route 172.16.3.0 255.255.255.0 serial 0/0
+```
+
+So sánh dòng trong `show ip route`:
+
+| Dạng | Cột `Gateway of Last Resort` / cột đích | Ý nghĩa |
+| --- | --- | --- |
+| Next-hop | `S 172.16.3.0/24 [1/0] via 172.16.2.2` | Router biết đi giao cho ai, phải tra tiếp bảng để ra cổng |
+| Exit interface | `S 172.16.3.0/24 is directly connected, Serial0/0` | Router biết ngay cổng ra, không cần tra lần hai |
+
+- Cả hai cùng mã nguồn `S`.
+- Nếu dùng cả hai cùng lúc, router chọn theo Administrative Distance (thường bằng nhau → có thể load-balance qua hai đường). Thực tế chỉ nên giữ một dạng cho mỗi đích.
+- Trên link serial (point-to-point), cả hai hoạt động giống hệt nhau về kết quả chuyển tiếp. Khác biệt chỉ là số lần tra bảng [1][3].
+
+### Bài 3 — Gộp tuyến bằng nhẩm và bằng nhị phân
+
+**Đề bài.** Gộp `10.0.4.0/24` → `10.0.7.0/24` thành một tuyến tổng hợp, tính bằng cả nhị phân lẫn thập phân.
+
+**Lời giải.**
+
+**Cách nhị phân** [2]:
+
+| Địa chỉ | Octet 3 (nhị phân) |
+| --- | --- |
+| 10.0.4.0 | 0000 0100 |
+| 10.0.5.0 | 0000 0101 |
+| 10.0.6.0 | 0000 0110 |
+| 10.0.7.0 | 0000 0111 |
+
+- Octet 1 và 2 giống nhau: 8 + 8 = 16 bit.
+- Octet 3: so `0000 0100` đến `0000 0111` — 5 bit đầu giống nhau (`00000`), 3 bit cuối khác → +5 bit.
+- Tổng: 16 + 5 = 21 bit → prefix `/21`.
+- Lấy phần chung (`10.0.00000xxx.0`), đặt bit còn lại bằng 0 → `10.0.0.0/21`.
+- Mask: `255.255.248.0`.
+
+**Cách thập phân** [2]:
+
+- Bốn mạng `/24` liên tiếp → độ dài prefix giảm 2 bit (2⁴ = 4... nhưng vì chỉ gộp 4 mạng → `/24 − 2 = /22`? Không — đây là kiểm chứng: `256 − 4 = 252` cho octet bị gộp là `255.255.252.0` **chỉ đúng khi bốn mạng chia hết 256 ở cấp octet thứ ba**).
+- Với `10.0.4.0` đến `10.0.7.0`, octet thứ ba đi từ 4 đến 7 — đây là bốn mạng, nhưng xét ở octet thứ ba ta có: `256 − 4 = 252` → mask `255.255.252.0` → `/22`.
+- ⚠ Kết quả `/22` sẽ bao `10.0.0.0` đến `10.0.3.255` — **sai** vì nó bắt đầu từ `10.0.0.0`, trong khi ta cần từ `10.0.4.0`.
+
+✦ Heuristic: cách thập phân `256 − n` chỉ nhanh khi các mạng **bắt đầu từ 0** ở octet bị gộp. Nếu không, bắt buộc dùng nhị phân. Bài này kết quả đúng là `/21` (mạng `10.0.0.0/21` bao `10.0.0.0`–`10.0.7.255`, nhưng `10.0.0.0`–`10.0.3.255` không thuộc tập ban đầu → gộp `/21` vẫn bao mạng không có; chọn `/21` hay tách rời phụ thuộc cấu trúc thực tế).
+
+Đối chiếu với ví dụ chính của bài: `192.168.0.0`–`192.168.3.0` bắt đầu từ 0 ở octet thứ ba → cả hai cách đều ra `/22` [2].
+
+### Bài 4 — Sửa tuyến tĩnh cấu hình sai
+
+**Đề bài.** Cố tình nhập sai exit interface, tìm ra bằng thứ tự gỡ lỗi, rồi sửa.
+
+**Lời giải.**
+
+Giả sử nhập sai: `ip route 172.16.3.0 255.255.255.0 Serial0/0/1` (trong khi cổng đúng là `Serial0/0/0`).
+
+**Thứ tự xử lý** [1]:
+
+1. `ping` từ nguồn tới đích — thất bại.
+2. `traceroute` — xác định gói dừng ở router nào, cổng nào. Nếu kết quả dừng ngay tại router mình thì vấn đề nằm ở bảng định tuyến của router đó.
+3. `show ip route` — dòng tuyến tĩnh sai vẫn hiện, nhưng cổng ra trong bảng không khớp topology.
+4. Sửa bằng cách xoá rồi nhập lại:
+
+```
+R2(config)# no ip route 172.16.3.0 255.255.255.0 Serial0/0/1
+R2(config)# ip route 172.16.3.0 255.255.255.0 Serial0/0/0
+```
+
+✦ Heuristic: ghi lại chính xác lệnh cũ trước khi `no` — sai một tham số là lệnh `no ip route` không gỡ được tuyến.
+
+### Bài 5 — Đọc `debug ip routing`
+
+**Đề bài.** Bật `debug ip routing`, xoá rồi thêm một tuyến tĩnh, đọc output.
+
+**Lời giải.**
+
+Kết quả mong đợi [1]:
+
+```
+R1# debug ip routing
+R1(config)# no ip route 172.16.3.0 255.255.255.0 172.16.2.2
+%RT: deleting route to 172.16.3.0/24
+R1(config)# ip route 172.16.3.0 255.255.255.0 172.16.2.2
+%RT: add 172.16.3.0/24 via 172.16.2.2, static
+```
+
+Ý nghĩa: dòng `%RT` ghi nhận mọi thay đổi router thực hiện khi thêm hoặc gỡ tuyến. Đây là cách quan sát trực tiếp bảng định tuyến thay đổi theo thời gian thực.
+
+Sau khi kiểm tra, tắt debug: `R1# undebug all`.
+
+### Bài 6 — Stub router và một dòng cấu hình
+
+**Đề bài.** Ba router R1 — R2 — R3, trong đó R3 chỉ nối với R2. R3 có phải stub router không? Cấu hình cho R3 chỉ bằng một dòng.
+
+**Lời giải.**
+
+- **R3 là stub router** — nó chỉ có đúng một router khác mà nó kết nối tới (R2) [1].
+- Stub network là mạng chỉ được truy cập qua một tuyến duy nhất [1]. LAN sau R3 chính là stub network.
+- Một dòng là đủ vì **mọi** gói tin rời R3 đều đi qua R2. Không có đường nào khác để cần mô tả:
+
+```
+R3(config)# ip route 0.0.0.0 0.0.0.0 172.16.2.1
+```
+
+(Trong đó `172.16.2.1` là địa chỉ cổng của R2 hướng về R3.)
+
+Kết quả: `ping` từ PC sau R3 tới PC sau R1 thành công. Bảng định tuyến của R3 chỉ có: mạng kết nối trực tiếp (code `C`) + tuyến mặc định (code `S*`).
+
+Tại sao một dòng đủ: R3 không cần biết chi tiết các mạng bên ngoài vì chỉ có một lối thoát. Mọi đích đều đi qua cùng một cửa — tuyến `/0` đã bao trùm tất cả.
+
+### Bài 7 — Tuyến mặc định trên router trung tâm
+
+**Đề bài.** Đặt tuyến mặc định lên R2 (router trung tâm, hai lối ra), thêm một tuyến cụ thể, xem router chọn gì.
+
+**Lời giải.**
+
+Giả sử topology: R1 — R2 — R3, và R2 có hai lối ra (sang R1 và sang R3). Đặt:
+
+```
+R2(config)# ip route 0.0.0.0 0.0.0.0 172.16.1.1
+R2(config)# ip route 172.16.3.0 255.255.255.0 172.16.2.2
+```
+
+`show ip route` cho thấy [1]:
+
+```
+S*    0.0.0.0/0 [1/0] via 172.16.1.1
+S     172.16.3.0/24 [1/0] via 172.16.2.2
+```
+
+**Router chọn tuyến cụ thể** `172.16.3.0/24`, vì:
+
+1. **Longest prefix match** — `/24` dài hơn `/0`, nên khớp tốt hơn cho địa chỉ trong dải `172.16.3.0/24`. Đây là quy tắc chọn tuyến quan trọng nhất trong bảng định tuyến.
+2. Tuyến mặc định chỉ được chọn khi **không tồn tại khớp cụ thể hơn** [1].
+
+Vấn đề: nếu `ip route 0.0.0.0 0.0.0.0 172.16.1.1` trỏ sai (tới R1 thay vì R3), mọi gói tin không khớp tuyến cụ thể sẽ bị gửi sai hướng. Đây là lý do **không nên đặt tuyến mặc định ở router trung tâm** — nó kéo mọi lưu lượng chưa xác định về một hướng duy nhất, dễ gây đi vòng hoặc mất gói.
+
+✦ Heuristic: đếm số lối thoát. Một → tuyến mặc định đúng. Nhiều hơn một → cần tuyến cụ thể hoặc tuyến động để phân biệt hướng.
 
 ## Tài liệu tham khảo
 
@@ -380,3 +630,7 @@ Khi ping thất bại, đừng đoán — đi theo thứ tự [1].
 [2] NetworkLessons.com, "Route Summarization," *CCNA Routing & Switching*. [Online]. Available: https://networklessons.com/cisco/ccna-routing-switching-icnd1-100-105/route-summarization
 
 [3] ComputerNetworkingNotes, "ip route Command Explained with Examples," *CCNA Study Guide*. [Online]. Available: https://www.computernetworkingnotes.com/ccna-study-guide/ip-route-command-explained-with-examples.html
+
+[4] Wikipedia, "Hop (networking)," *Wikipedia, The Free Encyclopedia*. [Online]. Available: https://en.wikipedia.org/wiki/Hop\_(networking)
+
+[5] Wikipedia, "Stub network," *Wikipedia, The Free Encyclopedia*. [Online]. Available: https://en.wikipedia.org/wiki/Stub_network
